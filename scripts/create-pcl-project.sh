@@ -121,14 +121,15 @@ fi
 
 mkdir -p "$TARGET_DIR"
 
-CLONE_ARGS=("git" "clone" "--branch" "$BRANCH" "${DEPTH_ARGS[@]}")
+CLONE_ARGS=("git" "clone" "--branch" "$BRANCH")
+# Append depth args only if set and non-empty (safe under set -u)
+if [[ ${DEPTH_ARGS+x} == x && ${#DEPTH_ARGS[@]} -gt 0 ]]; then
+  CLONE_ARGS+=("${DEPTH_ARGS[@]}")
+fi
 if [[ $RECURSE -eq 1 ]]; then
   CLONE_ARGS+=("--recurse-submodules")
 fi
 CLONE_ARGS+=("$REPO_URL" "$TARGET_DIR")
-
-# Flatten empty elements possibly introduced by DEPTH_ARGS
-CLONE_ARGS=("${CLONE_ARGS[@]}")
 
 printf "Cloning %s (branch: %s) into %s\n" "$REPO_URL" "$BRANCH" "$TARGET_DIR"
 "${CLONE_ARGS[@]}"
