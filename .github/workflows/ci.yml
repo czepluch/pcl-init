@@ -1,0 +1,38 @@
+name: Phylax Assertion Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "assertions/**"
+      - "src/**"
+  workflow_dispatch:
+
+env:
+  FOUNDRY_PROFILE: assertions
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install PCL CLI
+        run: |
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/phylaxsystems/credible-sdk/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
+          curl -L "https://github.com/phylaxsystems/credible-sdk/releases/download/${LATEST_VERSION}/pcl-${LATEST_VERSION}-linux-x86_64.tar.gz" | tar -xz
+          sudo mv pcl/pcl /usr/local/bin/
+          sudo chmod +x /usr/local/bin/pcl
+
+      - name: Run tests
+        run: |
+          pcl test
